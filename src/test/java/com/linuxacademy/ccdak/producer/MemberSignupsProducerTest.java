@@ -50,7 +50,16 @@ public class MemberSignupsProducerTest {
         // Perform a simple test to verify that the producer sends the correct data to the correct topic when handleMemberSignup is called.
         // Verify that the published record has the memberId as the key and the uppercased name as the value.
         // Verify that the records is sent to the member_signups topic.
-        throw new UnsupportedOperationException("not implemented");
+        memberSignupsProducer.handleMemberSignup(1, "Summers, Buffy");
+        
+        mockProducer.completeNext();
+        
+        List<ProducerRecord<Integer, String>> records = mockProducer.history();
+        Assert.assertEquals(1, records.size());
+        ProducerRecord<Integer, String> record = records.get(0);
+        Assert.assertEquals(Integer.valueOf(1), record.key());
+        Assert.assertEquals("SUMMERS, BUFFY", record.value());
+        Assert.assertEquals("member_signups", record.topic());
         
     }
     
@@ -58,21 +67,40 @@ public class MemberSignupsProducerTest {
     public void testHandleMemberSignup_partitioning() {
         // Verify that records with a value starting with A-M are assigned to partition 0, and that others are assigned to partition 1.
         // You can send two records in this test, one with a value that begins with A-M and the other that begins with N-Z.
-        throw new UnsupportedOperationException("not implemented");
+        memberSignupsProducer.handleMemberSignup(1, "M");
+        memberSignupsProducer.handleMemberSignup(1, "N");
+        
+        mockProducer.completeNext();
+        mockProducer.completeNext();
+        
+        List<ProducerRecord<Integer, String>> records = mockProducer.history();
+        Assert.assertEquals(2, records.size());
+        ProducerRecord<Integer, String> record1 = records.get(0);
+        Assert.assertEquals(Integer.valueOf(0), record1.partition());
+        ProducerRecord<Integer, String> record2 = records.get(1);
+        Assert.assertEquals(Integer.valueOf(1), record2.partition());
     }
     
     @Test
     public void testHandleMemberSignup_output() {
         // Verify that the producer logs the record data to System.out.
         // A text fixture called systemOutContent has already been set up in this class to capture System.out data.
-        throw new UnsupportedOperationException("not implemented");
+        memberSignupsProducer.handleMemberSignup(1, "Summers, Buffy");
+        
+        mockProducer.completeNext();
+        
+        Assert.assertEquals("key=1, value=SUMMERS, BUFFY\n", systemOutContent.toString());
     }
     
     @Test
     public void testHandleMemberSignup_error() {
         // Verify that the producer logs the error message to System.err if an error occurs when seding a record.
         // A text fixture called systemErrContent has already been set up in this class to capture System.err data.
-        throw new UnsupportedOperationException("not implemented");
+        memberSignupsProducer.handleMemberSignup(1, "Summers, Buffy");
+        
+        mockProducer.errorNext(new RuntimeException("test error"));
+        
+        Assert.assertEquals("test error\n", systemErrContent.toString());
     }
     
 }
